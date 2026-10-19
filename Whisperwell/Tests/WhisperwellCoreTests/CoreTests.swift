@@ -99,6 +99,8 @@ final class CleanupPromptTests: XCTestCase {
 }
 
 final class ConfigTests: XCTestCase {
+    private let secrets = InMemorySecretStore()
+
     private func write(_ json: String) throws -> URL {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("whisperwell-\(UUID().uuidString).json")
         try Data(json.utf8).write(to: url)
@@ -107,7 +109,7 @@ final class ConfigTests: XCTestCase {
     }
 
     func testMissingFieldsKeepDefaults() throws {
-        let config = try Config.load(from: write(#"{"hotkey": "fn", "dictionary": ["Kubernetes"]}"#), environment: [:])
+        let config = try Config.load(from: write(#"{"hotkey": "fn", "dictionary": ["Kubernetes"]}"#), environment: [:], secrets: secrets)
         XCTAssertEqual(config.hotkey, .fn)
         XCTAssertEqual(config.dictionary, ["Kubernetes"])
         XCTAssertEqual(config.asrModel, Config().asrModel)
@@ -117,14 +119,14 @@ final class ConfigTests: XCTestCase {
 
     func testEnvironmentOverridesFileKeys() throws {
         let url = try write(#"{"asrAPIKey": "file-key", "anthropicAPIKey": "file-ant"}"#)
-        let config = try Config.load(from: url, environment: ["OPENAI_API_KEY": "env-key", "ANTHROPIC_API_KEY": "env-ant"])
+        let config = try Config.load(from: url, environment: ["OPENAI_API_KEY": "env-key", "ANTHROPIC_API_KEY": "env-ant"], secrets: secrets)
         XCTAssertEqual(config.asrAPIKey, "env-key")
         XCTAssertEqual(config.anthropicAPIKey, "env-ant")
     }
 
     func testMissingFileUsesDefaults() throws {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("does-not-exist-\(UUID().uuidString).json")
-        XCTAssertEqual(try Config.load(from: url, environment: [:]), Config())
+        XCTAssertEqual(try Config.load(from: url, environment: [:], secrets: secrets), Config())
     }
 
     func testSaveRoundTripsAndIsPrivate() throws {
@@ -137,9 +139,9 @@ final class ConfigTests: XCTestCase {
         config.localLLMBaseURL = "http://10.0.0.82:1234/v1"
         config.anthropicAPIKey = "secret"
         config.dictionary = ["Kubernetes"]
-        try config.save(to: url)
+        try config.save(to: url, secrets: secrets)
 
-        XCTAssertEqual(try Config.load(from: url, environment: [:]), config)
+        XCTAssertEqual(try Config.load(from: url, environment: [:], secrets: secrets), config)
         let mode = try FileManager.default.attributesOfItem(atPath: url.path)[.posixPermissions] as? Int
         XCTAssertEqual(mode, 0o600)
         XCTAssertTrue(try String(contentsOf: url).contains("http://10.0.0.82:1234/v1"), "URLs stay readable")
@@ -147,8 +149,58 @@ final class ConfigTests: XCTestCase {
 
     func testInvalidJSONExplainsWhere() throws {
         let url = try write("{not json")
-        XCTAssertThrowsError(try Config.load(from: url, environment: [:])) { error in
+        XCTAssertThrowsError(try Config.load(from: url, environment: [:], secrets: secrets)) { error in
             XCTAssertTrue(error.localizedDescription.contains(url.path))
         }
+    }
+
+    func testSaveKeepsKeysOutOfTheFile() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("whisperwell-\(UUID().uuidString)/config.json")
+        addTeardownBlock { try? FileManager.default.removeItem(at: url.deletingLastPathComponent()) }
+        var config = Config()
+        config.anthropicAPIKey = "sk-ant-secret"
+        config.asrAPIKey = "sk-asr-secret"
+        config.localLLMAPIKey = "lm-secret"
+        try config.save(to: url, secrets: secrets)
+
+        let text = try String(contentsOf: url)
+        XCTAssertFalse(text.contains("secret"), "keys must not be written to the file")
+        XCTAssertEqual(try secrets.get("anthropicAPIKey"), "sk-ant-secret")
+        XCTAssertEqual(try secrets.get("asrAPIKey"), "sk-asr-secret")
+        XCTAssertEqual(try secrets.get("localLLMAPIKey"), "lm-secret")
+        XCTAssertEqual(try Config.load(from: url, environment: [:], secrets: secrets), config)
+
+        config.anthropicAPIKey = ""
+        try config.save(to: url, secrets: secrets)
+        XCTAssertNil(try secrets.get("anthropicAPIKey"), "clearing a key in Settings deletes it")
+    }
+
+    func testKeySourcesInOrder() throws {
+        try secrets.set("anthropicAPIKey", "keychain-ant")
+        try secrets.set("asrAPIKey", "keychain-asr")
+        try secrets.set("localLLMAPIKey", "keychain-local")
+        let url = try write(#"{"asrAPIKey": "file-asr"}"#)
+        let config = try Config.load(from: url, environment: ["ANTHROPIC_API_KEY": "env-ant"], secrets: secrets)
+        XCTAssertEqual(config.anthropicAPIKey, "env-ant", "environment beats everything")
+        XCTAssertEqual(config.asrAPIKey, "file-asr", "a key typed into the file beats the Keychain")
+        XCTAssertEqual(config.localLLMAPIKey, "keychain-local")
+    }
+
+    func testMovesFileKeysToKeychain() throws {
+        let url = try write(#"{"hotkey": "fn", "anthropicAPIKey": "sk-ant-old", "localLLMAPIKey": ""}"#)
+        XCTAssertTrue(try Config.moveKeysToKeychain(at: url, secrets: secrets))
+
+        XCTAssertEqual(try secrets.get("anthropicAPIKey"), "sk-ant-old")
+        let text = try String(contentsOf: url)
+        XCTAssertFalse(text.contains("APIKey"), text)
+        XCTAssertTrue(text.contains("\"fn\""), "other settings are kept")
+        XCTAssertFalse(try Config.moveKeysToKeychain(at: url, secrets: secrets), "second run has nothing to do")
+    }
+
+    func testMoveKeysWithoutFileDoesNothing() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("does-not-exist-\(UUID().uuidString).json")
+        XCTAssertFalse(try Config.moveKeysToKeychain(at: url, secrets: secrets))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: url.path))
     }
 }

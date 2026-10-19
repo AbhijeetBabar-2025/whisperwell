@@ -203,11 +203,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
                 let encoder = JSONEncoder()
                 encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-                var starter = Config()
-                starter.asrAPIKey = ""
-                starter.anthropicAPIKey = ""
-                try encoder.encode(starter).write(to: url)
-                // The file holds API keys; keep it private to this user.
+                try encoder.encode(Config()).write(to: url)
+                // Keys typed into this file are moved to the Keychain at next launch; keep it private meanwhile.
                 try fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
             } catch {
                 show(symbol: "exclamationmark.triangle", status: "Couldn't create \(url.path): \(error.localizedDescription)")
@@ -234,6 +231,13 @@ do {
 } catch {
     log.error("\(String(describing: error), privacy: .public)")
     fputs("warning: \(error)\n", stderr)
+}
+// API keys belong in the Keychain; move any left in the settings file by older versions or typed in by hand.
+do {
+    if try Config.moveKeysToKeychain() { log.info("Moved API keys from the settings file to the Keychain") }
+} catch {
+    log.error("Couldn't move API keys to the Keychain: \(error.localizedDescription, privacy: .public)")
+    fputs("warning: couldn't move API keys to the Keychain: \(error.localizedDescription). They stay in the settings file for now.\n", stderr)
 }
 
 // Command-line test mode: Whisperwell --transcribe <audio file>

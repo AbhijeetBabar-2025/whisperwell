@@ -17,7 +17,7 @@ public struct Cleaner: Sendable {
         guard let key = config.anthropicAPIKey, !key.isEmpty else {
             throw APIError.missingAPIKey(
                 service: Self.serviceName,
-                hint: "Set anthropicAPIKey in ~/.config/whisperwell/config.json or export ANTHROPIC_API_KEY. Set cleanupEnabled to false to paste raw transcripts."
+                hint: "Add your Anthropic API key in Settings… › Cleanup, or export ANTHROPIC_API_KEY. To paste raw transcripts instead, turn cleanup off there."
             )
         }
         apiKey = key

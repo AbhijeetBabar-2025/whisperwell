@@ -94,8 +94,24 @@ public struct Config: Equatable, Sendable {
             .appendingPathComponent(".config/whisperwell/config.json")
     }
 
-    /// Writes the settings file, readable only by this user since it can hold API keys.
-    public func save(to url: URL = defaultURL) throws {
+    /// API key fields. They're kept in the Keychain, named by their config field, not in the file.
+    static let keyFields: [(name: String, path: WritableKeyPath<Config, String?>)] = [
+        ("asrAPIKey", \.asrAPIKey),
+        ("anthropicAPIKey", \.anthropicAPIKey),
+        ("localLLMAPIKey", \.localLLMAPIKey),
+    ]
+
+    /// Saves API keys to `secrets` and everything else to the settings file (readable only by this user).
+    public func save(to url: URL = defaultURL, secrets: SecretStore = KeychainStore.shared) throws {
+        var file = self
+        for field in Self.keyFields {
+            try secrets.set(field.name, self[keyPath: field.path])
+            file[keyPath: field.path] = nil
+        }
+        try file.writeFile(to: url)
+    }
+
+    private func writeFile(to url: URL) throws {
         try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
@@ -103,17 +119,40 @@ public struct Config: Equatable, Sendable {
         try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
     }
 
+    private static func readFile(at url: URL) throws -> Config? {
+        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
+        do {
+            return try JSONDecoder().decode(Config.self, from: Data(contentsOf: url))
+        } catch {
+            throw ConfigError.invalidFile(path: url.path, reason: String(describing: error))
+        }
+    }
+
+    /// Moves API keys found in the settings file (older versions saved them there, or they were
+    /// typed in by hand) into `secrets`, then rewrites the file without them. Returns true if it moved any.
+    @discardableResult
+    public static func moveKeysToKeychain(at url: URL = defaultURL, secrets: SecretStore = KeychainStore.shared) throws -> Bool {
+        guard var file = try readFile(at: url),
+              keyFields.contains(where: { file[keyPath: $0.path] != nil }) else { return false }
+        for field in keyFields {
+            if let key = file[keyPath: field.path], !key.isEmpty {
+                try secrets.set(field.name, key)
+            }
+            file[keyPath: field.path] = nil
+        }
+        try file.writeFile(to: url)
+        return true
+    }
+
+    /// Reads the settings file, then fills in API keys: the environment first, then the file, then `secrets`.
     public static func load(
         from url: URL = defaultURL,
-        environment: [String: String] = ProcessInfo.processInfo.environment
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        secrets: SecretStore = KeychainStore.shared
     ) throws -> Config {
-        var config = Config()
-        if FileManager.default.fileExists(atPath: url.path) {
-            do {
-                config = try JSONDecoder().decode(Config.self, from: Data(contentsOf: url))
-            } catch {
-                throw ConfigError.invalidFile(path: url.path, reason: String(describing: error))
-            }
+        var config = try readFile(at: url) ?? Config()
+        for field in keyFields where (config[keyPath: field.path] ?? "").isEmpty {
+            config[keyPath: field.path] = try secrets.get(field.name)
         }
         if let key = environment["WHISPERWELL_ASR_API_KEY"] ?? environment["OPENAI_API_KEY"], !key.isEmpty {
             config.asrAPIKey = key

@@ -18,7 +18,7 @@ public struct Transcriber: Sendable {
         if key == nil, !url.isLocalHost {
             throw APIError.missingAPIKey(
                 service: Self.serviceName,
-                hint: "Set asrAPIKey in ~/.config/whisperwell/config.json or export OPENAI_API_KEY."
+                hint: "Add the API key in Settings… › Speech, or export OPENAI_API_KEY."
             )
         }
         baseURL = url

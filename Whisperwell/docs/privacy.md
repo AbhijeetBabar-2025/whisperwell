@@ -30,7 +30,7 @@ Whisperwell is a dictation app for macOS. This policy explains what happens to y
 
 **Your clipboard.** Whisperwell inserts text by pasting it. It saves your clipboard first and restores it about half a second later. Pasted text is marked so clipboard managers skip it.
 
-**Your settings.** Settings, API keys, and your personal dictionary are stored in a file on your Mac that only your user account can read. They are never sent to the developer.
+**Your settings.** API keys are stored in your Mac's Keychain. Other settings and your personal dictionary are stored in a file on your Mac that only your user account can read. None of them are sent to the developer.
 
 **The speech model.** On first use, Whisperwell downloads the Whisper model from Hugging Face. That download is a normal web request; it doesn't include your audio or text.
 

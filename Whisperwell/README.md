@@ -29,7 +29,7 @@ Release     ─▶ Whisper (on-device or API) ─▶ cleanup (Claude or local mo
 
 ## Config
 
-Settings… covers everything below. They're saved to `~/.config/whisperwell/config.json` (readable only by you), which you can also edit directly from the menu's *Open Config File*.
+Settings… covers everything below. API keys are saved in your login Keychain (items named "Whisperwell"). Everything else is saved to `~/.config/whisperwell/config.json` (readable only by you), which you can also edit directly from the menu's *Open Config File*. A key typed into that file works, and is moved to the Keychain the next time Whisperwell starts.
 
 | Field | Default | Notes |
 |---|---|---|
@@ -152,5 +152,5 @@ Both need an Apple Developer Program membership. Supporting files:
 ## Next steps
 
 - Paste faster on long dictations by reusing the live-preview transcription for the final text.
-- Store keys in the Keychain instead of a JSON file.
 - Move to Swift 6 language mode (the package uses Swift 5 mode today).
+- Intel Macs: the app compiles for x86_64, but WhisperKit 1.1.1 crashes there while decoding (tested under Rosetta). An Intel build would need on-device speech turned off, leaving only the cloud speech option.
