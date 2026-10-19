@@ -1,0 +1,103 @@
+/* Shared look for App Store screenshots. Pages are 1440x900 CSS px, rendered at 2x. */
+:root {
+  --indigo: #2a2f7a;
+  --violet: #5b3fd1;
+  --lilac: #8e5bf5;
+  --mint: #6bf5cf;
+  --ink: #12142b;
+  --paper: #ffffff;
+  --muted: rgba(255, 255, 255, 0.72);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1440px; height: 900px; overflow: hidden; }
+body {
+  font-family: -apple-system, "SF Pro Display", "Helvetica Neue", sans-serif;
+  color: var(--paper);
+  background:
+    radial-gradient(900px 600px at 78% 30%, rgba(142, 91, 245, 0.55), transparent 70%),
+    radial-gradient(700px 500px at 10% 100%, rgba(107, 245, 207, 0.18), transparent 70%),
+    linear-gradient(135deg, #1b1f4a 0%, var(--indigo) 40%, var(--violet) 100%);
+  -webkit-font-smoothing: antialiased;
+}
+.slide { position: relative; width: 100%; height: 100%; padding: 96px 96px; display: flex; align-items: center; gap: 72px; }
+.copy { flex: 0 0 470px; }
+.eyebrow { font-size: 17px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mint); margin-bottom: 22px; }
+h1 { font-size: 76px; line-height: 1.02; font-weight: 800; letter-spacing: -0.035em; margin-bottom: 26px; }
+.lede { font-size: 24px; line-height: 1.42; color: var(--muted); font-weight: 400; }
+.lede strong { color: var(--paper); font-weight: 600; }
+
+/* Keycap */
+.keys { display: flex; align-items: center; gap: 14px; margin-top: 40px; font-size: 18px; color: var(--muted); }
+.key {
+  min-width: 92px; height: 64px; padding: 0 18px; border-radius: 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 22px; font-weight: 600; color: var(--ink);
+  background: linear-gradient(#ffffff, #e4e6f3);
+  box-shadow: 0 6px 0 #b9bcd6, 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* macOS window */
+.window {
+  flex: 1; border-radius: 22px; overflow: hidden; color: var(--ink);
+  background: var(--paper);
+  box-shadow: 0 40px 90px rgba(5, 6, 30, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+.titlebar { height: 52px; display: flex; align-items: center; gap: 9px; padding: 0 20px; background: #f3f3f7; border-bottom: 1px solid #e3e3ea; }
+.dot { width: 13px; height: 13px; border-radius: 50%; }
+.dot.r { background: #ff5f57; } .dot.y { background: #febc2e; } .dot.g { background: #28c840; }
+.titlebar .title { margin-left: 18px; font-size: 15px; font-weight: 600; color: #6b6d80; }
+.field { display: flex; gap: 16px; padding: 16px 32px; border-bottom: 1px solid #ececf2; font-size: 17px; }
+.field .label { color: #8a8ca0; width: 70px; }
+.body { padding: 30px 32px 40px; font-size: 21px; line-height: 1.6; color: #22243a; min-height: 330px; }
+.body p + p { margin-top: 14px; }
+.caret { display: inline-block; width: 3px; height: 26px; margin-left: 2px; vertical-align: -5px; background: var(--violet); border-radius: 2px; }
+.fresh { background: linear-gradient(transparent 58%, rgba(107, 245, 207, 0.55) 58%); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+
+/* Floating "listening" pill */
+.pill {
+  position: absolute; display: flex; align-items: center; gap: 14px;
+  padding: 16px 26px 16px 18px; border-radius: 999px;
+  background: rgba(18, 20, 43, 0.92); color: var(--paper); font-size: 18px; font-weight: 600;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+.wave { display: flex; align-items: center; gap: 4px; height: 28px; }
+.wave i { display: block; width: 5px; border-radius: 3px; background: var(--mint); }
+
+/* Cards */
+.cards { flex: 1; display: grid; gap: 22px; }
+.card {
+  border-radius: 22px; padding: 30px 34px;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.card h3 { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; margin-bottom: 10px; display: flex; align-items: center; gap: 14px; }
+.card p { font-size: 19px; line-height: 1.5; color: var(--muted); }
+.badge { width: 44px; height: 44px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; background: rgba(107, 245, 207, 0.16); color: var(--mint); font-size: 22px; }
+
+/* Before / after */
+.said { color: rgba(255, 255, 255, 0.62); font-size: 22px; line-height: 1.5; font-style: italic; }
+.said s { color: rgba(255, 170, 170, 0.85); text-decoration-thickness: 2px; }
+.typed { background: var(--paper); color: var(--ink); box-shadow: 0 30px 70px rgba(5, 6, 30, 0.45); }
+.typed p { color: #22243a; font-size: 22px; line-height: 1.5; }
+.typed ol { margin: 8px 0 0 26px; color: #22243a; font-size: 22px; line-height: 1.55; }
+.tag { font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 12px; }
+.tag.in { color: rgba(255, 255, 255, 0.55); } .tag.out { color: var(--violet); }
+.arrow { text-align: center; font-size: 34px; color: var(--mint); line-height: 1; }
+
+/* Menu bar mock */
+.desktop { flex: 1; align-self: stretch; position: relative; border-radius: 24px; overflow: hidden;
+  background: linear-gradient(160deg, #3b3f8f, #6a4bd8 60%, #9a6cf7);
+  box-shadow: 0 40px 90px rgba(5, 6, 30, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.1); }
+.menubar { height: 40px; display: flex; align-items: center; justify-content: flex-end; gap: 26px; padding: 0 22px;
+  background: rgba(20, 20, 40, 0.35); font-size: 15px; font-weight: 500; }
+.menubar .on { background: rgba(255, 255, 255, 0.28); border-radius: 6px; padding: 3px 9px; }
+.menu { position: absolute; top: 48px; right: 150px; width: 470px; padding: 8px; border-radius: 14px;
+  background: rgba(246, 246, 250, 0.97); color: var(--ink); font-size: 16px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.08); }
+.menu .item { padding: 8px 14px; border-radius: 7px; display: flex; justify-content: space-between; }
+.menu .item.dim { color: #5b5d72; }
+.menu .item.hl { background: var(--violet); color: #fff; }
+.menu .sep { height: 1px; background: #dcdce6; margin: 6px 10px; }
+.ok { color: #12a37a; font-weight: 600; }
+.shortcut { color: #8a8ca0; }
+.menu .item.hl .shortcut { color: rgba(255,255,255,0.8); }
