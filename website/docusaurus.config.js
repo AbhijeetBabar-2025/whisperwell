@@ -49,10 +49,11 @@ const config = {
           {type: 'docSidebar', sidebarId: 'guide', position: 'left', label: 'Docs'},
           {to: '/support', label: 'Support', position: 'left'},
           {to: '/privacy', label: 'Privacy', position: 'left'},
-          {href: repo, label: 'GitHub', position: 'right'},
+          {href: repo, position: 'right', className: 'header-github-link', 'aria-label': 'GitHub repository'},
         ],
       },
       footer: {
+        style: 'dark',
         links: [
           {
             title: 'Docs',
@@ -75,7 +76,9 @@ const config = {
             items: [{label: 'GitHub', href: repo}],
           },
         ],
-        copyright: `Whisperwell. Built with Docusaurus.`,
+        logo: {alt: 'Whisperwell', src: 'img/icon.png', width: 48, height: 48, href: '/'},
+        copyright:
+          'Whisperwell: push-to-talk dictation for macOS. Brand logos are trademarks of their owners and appear only to show compatibility.',
       },
       prism: {
         theme: prismThemes.github,

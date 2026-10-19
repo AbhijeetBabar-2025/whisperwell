@@ -3,15 +3,43 @@ import Link from '@docusaurus/Link';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
+import {Cpu, Password, Sparkle, WifiSlash} from '@phosphor-icons/react/dist/ssr';
+import {
+  siClaude,
+  siCursor,
+  siDiscord,
+  siFigma,
+  siFirefoxbrowser,
+  siGithub,
+  siGmail,
+  siGooglechrome,
+  siHuggingface,
+  siLinear,
+  siLmstudio,
+  siNotion,
+  siObsidian,
+  siOllama,
+  siSafari,
+  siTelegram,
+} from 'simple-icons';
+import BrandLogo from '@site/src/components/BrandLogo';
 import styles from './index.module.css';
 
 const repo = 'https://github.com/AbhijeetBabar-2025/whisperwell';
+
+// Apps people dictate into. Whisperwell works in any app; these are examples.
+const apps = [
+  siGmail, siNotion, siGooglechrome, siSafari, siFirefoxbrowser, siDiscord,
+  siObsidian, siLinear, siGithub, siFigma, siCursor, siTelegram,
+];
+const models = [siClaude, siOllama, siLmstudio, siHuggingface];
 
 function Hero() {
   return (
     <header className={styles.hero}>
       <div className={styles.heroInner}>
         <div className={styles.heroText}>
+          <img className={styles.heroIcon} src={useBaseUrl('/img/icon.png')} width="72" height="72" alt="" />
           <Heading as="h1" className={styles.heroTitle}>
             Dictation that types wherever you work.
           </Heading>
@@ -23,6 +51,7 @@ function Hero() {
               Get started
             </Link>
             <Link className={styles.secondary} href={repo}>
+              <BrandLogo icon={siGithub} size={18} />
               View on GitHub
             </Link>
           </div>
@@ -36,6 +65,33 @@ function Hero() {
         />
       </div>
     </header>
+  );
+}
+
+function AppStrip() {
+  // The list is rendered twice so the scroll can loop seamlessly; the copy is hidden from screen readers.
+  const row = (hidden) => (
+    <ul className={styles.logoRow} aria-hidden={hidden || undefined}>
+      {apps.map((icon) => (
+        <li key={icon.slug}>
+          <BrandLogo icon={icon} size={30} />
+          <span>{icon.title}</span>
+        </li>
+      ))}
+    </ul>
+  );
+  return (
+    <section className={styles.strip} aria-labelledby="apps-title">
+      <p id="apps-title" className={styles.stripTitle}>
+        Types into the apps you already use, and every other one.
+      </p>
+      <div className={styles.marquee}>
+        <div className={styles.marqueeTrack}>
+          {row(false)}
+          {row(true)}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -63,10 +119,10 @@ function Steps() {
   );
 }
 
-function Gallery() {
+function Cleanup() {
   return (
-    <section className={styles.gallery}>
-      <figure className={styles.wide}>
+    <section className={styles.cleanup}>
+      <figure>
         <img
           src={useBaseUrl('/img/02-meant.jpg')}
           width="1600"
@@ -76,18 +132,24 @@ function Gallery() {
         />
         <figcaption>Filler words go, corrections stick, and punctuation is added for you.</figcaption>
       </figure>
-      <div className={styles.pair}>
-        <figure>
-          <img
-            src={useBaseUrl('/img/03-private.jpg')}
-            width="1600"
-            height="1000"
-            loading="lazy"
-            alt="Private by default: on-device speech recognition, bring your own AI, works offline, respects password fields."
-          />
-          <figcaption>Speech recognition runs on your Mac. Nothing goes to the developer.</figcaption>
-        </figure>
-        <figure>
+    </section>
+  );
+}
+
+function Features() {
+  return (
+    <section className={styles.features}>
+      <Heading as="h2" className={styles.sectionTitle}>
+        Private by default. Yours to tune.
+      </Heading>
+      <div className={styles.bento}>
+        <article className={`${styles.cell} ${styles.cellDevice}`}>
+          <Cpu size={30} weight="duotone" />
+          <h3>Speech stays on your Mac</h3>
+          <p>Whisper runs on Apple silicon. In on-device mode your audio is never uploaded.</p>
+        </article>
+
+        <figure className={`${styles.cell} ${styles.cellShot}`}>
           <img
             src={useBaseUrl('/img/04-menubar.jpg')}
             width="1600"
@@ -95,8 +157,33 @@ function Gallery() {
             loading="lazy"
             alt="The Whisperwell menu bar menu, showing the speech and cleanup models are ready."
           />
-          <figcaption>It lives in the menu bar and shows which models are ready.</figcaption>
         </figure>
+
+        <article className={`${styles.cell} ${styles.cellOffline}`}>
+          <WifiSlash size={30} weight="duotone" />
+          <h3>Works offline</h3>
+          <p>After a one-time model download, dictation needs no internet connection.</p>
+        </article>
+
+        <article className={`${styles.cell} ${styles.cellModels}`}>
+          <Sparkle size={30} weight="duotone" />
+          <h3>Bring your own AI</h3>
+          <p>Clean up text with Claude using your own key, or with a model running on your machine.</p>
+          <ul className={styles.modelLogos}>
+            {models.map((icon) => (
+              <li key={icon.slug}>
+                <BrandLogo icon={icon} size={26} />
+                <span>{icon.title}</span>
+              </li>
+            ))}
+          </ul>
+        </article>
+
+        <article className={`${styles.cell} ${styles.cellSecure}`}>
+          <Password size={30} weight="duotone" />
+          <h3>Skips password fields</h3>
+          <p>It never types into secure fields, and your clipboard comes back after every paste.</p>
+        </article>
       </div>
     </section>
   );
@@ -144,8 +231,10 @@ export default function Home() {
       description="Hold a key, speak, and polished text appears wherever you type on your Mac. Speech recognition runs privately on your device.">
       <Hero />
       <main>
+        <AppStrip />
         <Steps />
-        <Gallery />
+        <Cleanup />
+        <Features />
         <Requirements />
       </main>
     </Layout>
