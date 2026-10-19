@@ -95,6 +95,27 @@ function AppStrip() {
   );
 }
 
+function Demo() {
+  return (
+    <section className={styles.demo} aria-labelledby="demo-title">
+      <Heading as="h2" id="demo-title" className={styles.sectionTitle}>
+        See it in 23 seconds
+      </Heading>
+      <video
+        className={styles.demoVideo}
+        src={useBaseUrl('/video/whisperwell-demo.mp4')}
+        poster={useBaseUrl('/img/demo-poster.jpg')}
+        width="1920"
+        height="1080"
+        controls
+        playsInline
+        preload="none">
+        A short demo: holding the option key, saying a messy sentence, and Whisperwell typing the clean version into Mail.
+      </video>
+    </section>
+  );
+}
+
 function Steps() {
   return (
     <section className={styles.steps}>
@@ -232,6 +253,7 @@ export default function Home() {
       <Hero />
       <main>
         <AppStrip />
+        <Demo />
         <Steps />
         <Cleanup />
         <Features />

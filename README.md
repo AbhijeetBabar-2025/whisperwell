@@ -153,6 +153,10 @@ Both need an Apple Developer Program membership. Supporting files:
 - [WhisperKit](https://github.com/argmaxinc/WhisperKit) by Argmax, MIT License. Pinned to 1.1.1 in `Package.swift`.
 - Whisper model weights by OpenAI, MIT License, downloaded at runtime from Hugging Face.
 
+## License
+
+Whisperwell is released under the [MIT License](LICENSE). Brand logos shown on the website are trademarks of their owners.
+
 ## Next steps
 
 - Move to Swift 6 language mode (the package uses Swift 5 mode today).

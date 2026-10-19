@@ -153,6 +153,7 @@
 
 /* Steps */
 
+.demo,
 .steps,
 .cleanup,
 .features,
@@ -213,6 +214,15 @@
 }
 
 /* Cleanup screenshot */
+
+.demoVideo {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 16px;
+  background: #12142b;
+  box-shadow: 0 20px 60px rgb(42 47 122 / 0.22);
+}
 
 .cleanup figure {
   margin: 0;
@@ -446,6 +456,7 @@
   }
 
   .steps,
+  .demo,
   .cleanup,
   .features,
   .requirements {
