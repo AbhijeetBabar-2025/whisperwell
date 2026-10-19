@@ -10,6 +10,10 @@ Hold hotkey ─▶ read focused text field (Accessibility) ─▶ record mic (16
 Release     ─▶ Whisper (on-device or API) ─▶ cleanup (Claude or local model) ─▶ clipboard + ⌘V ─▶ restore clipboard
 ```
 
+The text goes wherever the cursor is when it's ready, in any app. If a text field ignores ⌘V (some web forms block pasting), Whisperwell types the text instead. If nothing that takes text is focused, or neither works, your text stays on the clipboard so you can paste it yourself. ⌘V follows your keyboard layout (Dvorak, AZERTY, and so on), and Electron apps such as VS Code and Slack are asked to expose their text fields so cleanup can see them.
+
+To try insertion without dictating: `open -n build/Whisperwell.app --args --insert-test "some text" --into "TextEdit"`. It waits 3 seconds, inserts into the focused field if TextEdit is frontmost, and prints what happened (add `--stdout <file>` before `--args` to capture it).
+
 ## Setup
 
 1. **Build** (needs Xcode or the Command Line Tools, macOS 13+):

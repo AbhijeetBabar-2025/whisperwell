@@ -209,20 +209,33 @@ final class DictationController {
             state = .idle
             return
         }
-        if context.isSecureField {
-            fail(InsertError.secureField)
-            return
-        }
         guard Permissions.accessibility(prompt: false) else {
+            if context.isSecureField { return fail(InsertError.secureField) }
             // Don't lose the dictation: hand it over through the clipboard.
             TextInserter.copy(text)
             fail(InsertError.noAccessibility, notice: "Copied to clipboard. Press ⌘V to paste.")
             return
         }
-        TextInserter.insert(text)
-        feedback.inserted()
-        log.info("Inserted \(text.count, privacy: .public) characters into \(context.appName ?? "unknown app", privacy: .public)")
-        state = .idle
+        // Focus may have moved while processing; the text goes where it is now.
+        let field = FocusedField.current()
+        if context.isSecureField || field.isSecure {
+            fail(InsertError.secureField)
+            return
+        }
+        let appName = field.appName ?? context.appName ?? "unknown app"
+        TextInserter.insert(text, into: field) { [self] outcome in
+            switch outcome {
+            case .pasted, .typed:
+                let how = outcome == .typed ? "Typed (paste was ignored)" : "Inserted"
+                log.info("\(how, privacy: .public) \(text.count, privacy: .public) characters into \(appName, privacy: .public)")
+                feedback.inserted()
+                state = .idle
+            case .noTextField:
+                fail(InsertError.noTextField, notice: "No text field selected. Copied: press ⌘V.")
+            case .notConfirmed:
+                fail(InsertError.notConfirmed, notice: "Couldn't insert here. Copied: press ⌘V.")
+            }
+        }
     }
 
     /// `notice` is a short version for the floating indicator; the menu shows the full message.
@@ -237,6 +250,8 @@ final class DictationController {
 enum InsertError: LocalizedError {
     case secureField
     case noAccessibility
+    case noTextField
+    case notConfirmed
 
     var errorDescription: String? {
         switch self {
@@ -244,6 +259,10 @@ enum InsertError: LocalizedError {
             return "Not pasting into a password field."
         case .noAccessibility:
             return "Couldn't paste, so your text is on the clipboard: press ⌘V. To paste automatically, allow Whisperwell under System Settings › Privacy & Security › Accessibility, then relaunch it."
+        case .noTextField:
+            return "Nothing that takes text was selected, so your text is on the clipboard: click into a text field and press ⌘V."
+        case .notConfirmed:
+            return "This field didn't accept pasted or typed text, so your text is on the clipboard: press ⌘V to try again, or paste it somewhere else."
         }
     }
 }

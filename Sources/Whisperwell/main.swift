@@ -259,6 +259,29 @@ if let flag = arguments.firstIndex(of: "--render-ui"), flag + 1 < arguments.coun
     exit(MainActor.assumeIsolated { WindowPreview.run(folder: arguments[flag + 1]) })
 }
 
+// Test inserting without dictating: Whisperwell --insert-test "<text>" [--into <app name>] waits 3 s for you to
+// focus a field, inserts the text there the way a dictation would, and prints what happened.
+// Launch it with `open -n Whisperwell.app --args …` so macOS applies the app's own Accessibility permission.
+if let flag = arguments.firstIndex(of: "--insert-test"), flag + 1 < arguments.count {
+    print("accessibility: \(Permissions.accessibility(prompt: false))")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+        let field = FocusedField.current()
+        // --into <app name>: insert only if that app is frontmost, so a stray focus change can't misfire.
+        if let into = arguments.firstIndex(of: "--into").flatMap({ $0 + 1 < arguments.count ? arguments[$0 + 1] : nil }),
+           field.appName != into {
+            print("skipped: \(field.appName ?? "?") is frontmost, not \(into)")
+            exit(1)
+        }
+        print("app: \(field.appName ?? "?"), role: \(field.role ?? "?"), focus: \(field.kind), secure: \(field.isSecure), state: \(String(describing: field.state()))")
+        TextInserter.insert(arguments[flag + 1], into: field) { outcome in
+            print("outcome: \(outcome)")
+            // Stay until the clipboard is restored, as the running app would.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { exit(0) }
+        }
+    }
+    RunLoop.main.run()
+}
+
 // main.swift runs on the main thread.
 MainActor.assumeIsolated {
     let app = NSApplication.shared
