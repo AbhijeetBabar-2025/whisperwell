@@ -9,7 +9,7 @@ const repo = 'https://github.com/AbhijeetBabar-2025/whisperwell';
 const config = {
   title: 'Whisperwell',
   tagline: 'Push-to-talk dictation for macOS. Speech recognition runs on your Mac.',
-  favicon: 'img/favicon.png',
+  favicon: 'img/favicon.svg',
 
   url: 'https://abhijeetbabar-2025.github.io',
   baseUrl: '/whisperwell/',
@@ -21,6 +21,12 @@ const config = {
   onBrokenLinks: 'throw',
 
   i18n: {defaultLocale: 'en', locales: ['en']},
+
+  // Home-screen icon for iOS and a PNG favicon for browsers without SVG favicon support.
+  headTags: [
+    {tagName: 'link', attributes: {rel: 'apple-touch-icon', href: '/whisperwell/img/icon.png'}},
+    {tagName: 'link', attributes: {rel: 'alternate icon', type: 'image/png', href: '/whisperwell/img/icon.png'}},
+  ],
 
   presets: [
     [
@@ -44,7 +50,7 @@ const config = {
       colorMode: {respectPrefersColorScheme: true},
       navbar: {
         title: 'Whisperwell',
-        logo: {alt: 'Whisperwell icon', src: 'img/icon.png'},
+        logo: {alt: 'Whisperwell logo', src: 'img/logo.svg', srcDark: 'img/logo-dark.svg', width: 32, height: 32},
         items: [
           {type: 'docSidebar', sidebarId: 'guide', position: 'left', label: 'Docs'},
           {to: '/support', label: 'Support', position: 'left'},
@@ -76,7 +82,7 @@ const config = {
             items: [{label: 'GitHub', href: repo}],
           },
         ],
-        logo: {alt: 'Whisperwell', src: 'img/icon.png', width: 48, height: 48, href: '/'},
+        logo: {alt: 'Whisperwell logo', src: 'img/logo-dark.svg', width: 44, height: 44, href: '/'},
         copyright:
           'Whisperwell: push-to-talk dictation for macOS. Brand logos are trademarks of their owners and appear only to show compatibility.',
       },

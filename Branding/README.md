@@ -3,9 +3,16 @@
 Source and output for the app icon and App Store screenshots. Everything is generated from code,
 so edits are reviewable and repeatable.
 
+## Logo
+
+- `Logo/mark-light.svg` (violet, for light backgrounds), `Logo/mark-dark.svg` (white, for dark backgrounds), and `Logo/mark-tile.svg` (the mark on the brand gradient, used as the website favicon and hero icon).
+- Design: one continuous sound wave shaped like a lowercase "w" (the voice, and the brand initial) beside a mint text cursor (where the words land). It is drawn on a 100-unit grid; `scripts/make-icon.swift` draws the same path for the app icon, so change both together.
+- Keep clear space of at least half the mark's width around it, and don't recolor the cursor: mint is the "text lands here" accent. On light backgrounds the cursor uses a deeper mint (`#2BC9A0`) for contrast.
+- The website uses copies in `website/static/img/` (`logo.svg`, `logo-dark.svg`, `favicon.svg`).
+
 ## Icon
 
-- Source: `scripts/make-icon.swift`, a waveform resolving into a text cursor on an indigo-to-violet squircle.
+- Source: `scripts/make-icon.swift`, the logo mark on an indigo-to-violet squircle.
 - Output: `Icon/AppIcon-1024.png` (upload to App Store Connect) and `Support/AppIcon.icns` (bundled in the app).
 
 ```bash

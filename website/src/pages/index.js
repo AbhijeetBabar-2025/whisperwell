@@ -39,7 +39,7 @@ function Hero() {
     <header className={styles.hero}>
       <div className={styles.heroInner}>
         <div className={styles.heroText}>
-          <img className={styles.heroIcon} src={useBaseUrl('/img/icon.png')} width="72" height="72" alt="" />
+          <img className={styles.heroIcon} src={useBaseUrl('/img/favicon.svg')} width="72" height="72" alt="" />
           <Heading as="h1" className={styles.heroTitle}>
             Dictation that types wherever you work.
           </Heading>

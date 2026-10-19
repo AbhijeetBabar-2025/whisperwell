@@ -1,8 +1,8 @@
 // Draws the app icon and builds Support/AppIcon.icns.
 // Usage: swift scripts/make-icon.swift   (run from the repo root)
 //
-// Design: a voice waveform that resolves into a text cursor, i.e. speech becoming text,
-// on the standard macOS rounded-square body (824 pt inside a 1024 pt canvas).
+// Design: the Whisperwell mark (Branding/Logo): a sound wave shaped like a "w" beside a mint text
+// cursor, i.e. speech becoming text, on the standard macOS rounded-square body (824 pt inside a 1024 pt canvas).
 import AppKit
 
 let canvas: CGFloat = 1024
@@ -46,38 +46,35 @@ func drawIcon(in ctx: CGContext) {
     ctx.drawLinearGradient(sheen, start: CGPoint(x: 512, y: body.maxY), end: CGPoint(x: 512, y: 560), options: [])
     ctx.restoreGState()
 
-    // Waveform: rounded bars, tallest in the middle, fading in from the left.
-    let centerY: CGFloat = 512
-    let barWidth: CGFloat = 44
-    let gap: CGFloat = 30
-    let heights: [CGFloat] = [110, 220, 360, 270, 160]
-    // Bars + caret span 452 pt; start so the whole group is centered on 512.
-    var x: CGFloat = 286
-    for (i, h) in heights.enumerated() {
-        let rect = CGRect(x: x, y: centerY - h / 2, width: barWidth, height: h)
-        ctx.addPath(CGPath(roundedRect: rect, cornerWidth: barWidth / 2, cornerHeight: barWidth / 2, transform: nil))
-        ctx.setFillColor(color(0xFFFFFF, 0.55 + 0.1 * CGFloat(i)))
-        ctx.fillPath()
-        x += barWidth + gap
-    }
-
-    // Text cursor (I-beam) in mint: where the words land.
-    let caretX = x + 24
-    let caretTop: CGFloat = centerY + 205
-    let caretBottom: CGFloat = centerY - 205
+    // The mark, drawn in the same 100-unit coordinates as Branding/Logo/*.svg (y pointing down),
+    // scaled to 560 pt and centered on the body.
     ctx.saveGState()
-    ctx.setShadow(offset: .zero, blur: 30, color: color(0x5FF2C8, 0.8))
-    ctx.setStrokeColor(color(0x6BF5CF))
+    ctx.translateBy(x: 512 - 280, y: 512 + 280)
+    ctx.scaleBy(x: 5.6, y: -5.6)
     ctx.setLineCap(.round)
-    ctx.setLineWidth(40)
-    ctx.move(to: CGPoint(x: caretX, y: caretBottom + 20))
-    ctx.addLine(to: CGPoint(x: caretX, y: caretTop - 20))
+    ctx.setLineJoin(.round)
+
+    // A sound wave shaped like a lowercase w: the voice.
+    let wave = CGMutablePath()
+    wave.move(to: CGPoint(x: 13, y: 28))
+    wave.addCurve(to: CGPoint(x: 28, y: 72), control1: CGPoint(x: 15, y: 52), control2: CGPoint(x: 20, y: 72))
+    wave.addCurve(to: CGPoint(x: 42, y: 46), control1: CGPoint(x: 36, y: 72), control2: CGPoint(x: 37, y: 46))
+    wave.addCurve(to: CGPoint(x: 56, y: 72), control1: CGPoint(x: 47, y: 46), control2: CGPoint(x: 48, y: 72))
+    wave.addCurve(to: CGPoint(x: 71, y: 28), control1: CGPoint(x: 64, y: 72), control2: CGPoint(x: 69, y: 52))
+    ctx.saveGState()
+    ctx.setShadow(offset: CGSize(width: 0, height: -10), blur: 30, color: color(0x12142B, 0.35))
+    ctx.addPath(wave)
+    ctx.setStrokeColor(color(0xFFFFFF))
+    ctx.setLineWidth(10)
     ctx.strokePath()
-    ctx.setLineWidth(30)
-    for y in [caretTop, caretBottom] {
-        ctx.move(to: CGPoint(x: caretX - 58, y: y))
-        ctx.addLine(to: CGPoint(x: caretX + 58, y: y))
-    }
+    ctx.restoreGState()
+
+    // The text cursor in mint: where the words land.
+    ctx.setShadow(offset: .zero, blur: 30, color: color(0x5FF2C8, 0.8))
+    ctx.move(to: CGPoint(x: 87, y: 22))
+    ctx.addLine(to: CGPoint(x: 87, y: 78))
+    ctx.setStrokeColor(color(0x6BF5CF))
+    ctx.setLineWidth(9)
     ctx.strokePath()
     ctx.restoreGState()
 }

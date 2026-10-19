@@ -68,8 +68,9 @@ html[data-theme='dark'] {
   letter-spacing: -0.01em;
 }
 
-.navbar__logo img {
-  border-radius: 7px;
+.navbar__logo {
+  height: 2rem;
+  margin-right: 0.4rem;
 }
 
 .navbar__link {
@@ -112,8 +113,12 @@ html[data-theme='dark'] {
 }
 
 .footer__logo {
-  border-radius: 12px;
-  max-width: 48px;
+  max-width: 44px;
+}
+
+/* Docusaurus dims the footer logo to half opacity; the brand mark should read clearly. */
+.footer__bottom a:has(.footer__logo) {
+  opacity: 0.9;
 }
 
 .footer__copyright {
