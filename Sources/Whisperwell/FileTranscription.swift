@@ -50,10 +50,37 @@ enum FileTranscription {
                     _ = try? await preview.value
                     print("race final: \(final)")
                 }
+                if CommandLine.arguments.contains("--simulate-live"), let transcriber = onDevice {
+                    // Replays the file as if it were being spoken: a pass every LivePreview.interval,
+                    // with audio still arriving while each pass runs. Then times what's left at release.
+                    _ = try await transcriber(Array(samples.prefix(AudioFormat.sampleRate))) // load the model
+                    let rate = Double(AudioFormat.sampleRate)
+                    let incremental = IncrementalTranscript(transcribe: transcriber)
+                    var heard = 0
+                    var passes = 0
+                    while heard < samples.count {
+                        heard = min(samples.count, heard + Int(LivePreview.interval * rate))
+                        let passStart = Date()
+                        _ = await incremental.update(samples: Array(samples.prefix(heard)), preview: true)
+                        passes += 1
+                        heard = min(samples.count, heard + Int(Date().timeIntervalSince(passStart) * rate))
+                    }
+                    let committed = await incremental.committedSeconds
+                    let releaseStart = Date()
+                    let live = try await incremental.finish(samples: samples)
+                    print(String(format: "live: %d passes, %.1fs already transcribed at release; speech-to-text after release: %.2fs",
+                                 passes, committed, Date().timeIntervalSince(releaseStart)))
+                    print("live raw: \(live)")
+                    let fullStart = Date()
+                    let full = try await transcriber(samples)
+                    print(String(format: "all at once: %.2fs", Date().timeIntervalSince(fullStart)))
+                    print("full raw: \(full)")
+                }
                 let start = Date()
-                let text = try await pipeline.run(samples: samples)
+                let result = try await pipeline.runDetailed(samples: samples)
                 print(String(format: "took: %.1fs (includes loading the speech model)", Date().timeIntervalSince(start)))
-                print("result: \(text)")
+                print(String(format: "speech-to-text: %.2fs, cleanup: %.2fs", result.transcribeSeconds, result.cleanupSeconds))
+                print("result: \(result.text)")
             } catch {
                 fputs("error: \(error.localizedDescription)\n", stderr)
                 exitCode.value = 1

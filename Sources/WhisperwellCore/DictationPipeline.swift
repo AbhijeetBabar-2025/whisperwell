@@ -79,6 +79,21 @@ public struct DictationPipeline: Sendable {
         public let raw: String
         /// What gets pasted: the cleaned-up text, or `raw` if cleanup is off or failed.
         public let text: String
+        /// How long each step took, for the log.
+        public var transcribeSeconds: Double = 0
+        public var cleanupSeconds: Double = 0
+
+        public init(raw: String, text: String, transcribeSeconds: Double = 0, cleanupSeconds: Double = 0) {
+            self.raw = raw
+            self.text = text
+            self.transcribeSeconds = transcribeSeconds
+            self.cleanupSeconds = cleanupSeconds
+        }
+
+        /// Compares the text only; timings differ on every run.
+        public static func == (a: Result, b: Result) -> Bool {
+            a.raw == b.raw && a.text == b.text
+        }
     }
 
     /// `samples` are 16 kHz mono 16-bit PCM.
@@ -87,13 +102,18 @@ public struct DictationPipeline: Sendable {
     }
 
     public func runDetailed(samples: [Int16]) async throws -> Result {
+        let start = Date()
         let raw = try await transcribe(samples)
-        guard let clean, !raw.isEmpty else { return Result(raw: raw, text: raw) }
+        let transcribed = Date()
+        let transcribeSeconds = transcribed.timeIntervalSince(start)
+        guard let clean, !raw.isEmpty else { return Result(raw: raw, text: raw, transcribeSeconds: transcribeSeconds) }
+        var text = raw
         do {
-            return Result(raw: raw, text: try await clean(raw))
+            text = try await clean(raw)
         } catch {
             log("Cleanup failed, using the raw transcript instead: \(error.localizedDescription)")
-            return Result(raw: raw, text: raw)
         }
+        return Result(raw: raw, text: text, transcribeSeconds: transcribeSeconds,
+                      cleanupSeconds: Date().timeIntervalSince(transcribed))
     }
 }

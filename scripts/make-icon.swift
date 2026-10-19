@@ -1,5 +1,5 @@
 // Draws the app icon and builds Support/AppIcon.icns.
-// Usage: swift scripts/make-icon.swift   (run from the Whisperwell folder)
+// Usage: swift scripts/make-icon.swift   (run from the repo root)
 //
 // Design: a voice waveform that resolves into a text cursor, i.e. speech becoming text,
 // on the standard macOS rounded-square body (824 pt inside a 1024 pt canvas).

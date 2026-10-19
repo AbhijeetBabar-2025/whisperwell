@@ -36,7 +36,7 @@ Settings… covers everything below. API keys are saved in your login Keychain (
 | `hotkey` | `rightOption` | `rightOption`, `rightCommand`, or `fn`. For `fn`, set System Settings › Keyboard › "Press 🌐 key to" to *Do Nothing*. |
 | `playSounds` | `true` | A soft sound when the mic starts listening (your cue to talk) and when it stops. |
 | `showIndicator` | `true` | A floating pill at the bottom of the screen: live waveform while listening, then "Transcribing…". |
-| `livePreview` | `true` | Show your words in the indicator as you speak (on-device speech only). The cleaned-up text is pasted when you let go. |
+| `livePreview` | `true` | Show your words in the indicator as you speak (on-device speech only). The cleaned-up text is pasted when you let go. Either way, on-device speech transcribes long dictations in pieces at your pauses while you talk, so letting go only has to transcribe the last few seconds. |
 | `skipCleanupMaxWords` | `4` | Paste transcripts this short as-is, skipping cleanup, so quick replies appear almost instantly. Cleanup still runs if they contain fillers or corrections ("um", "actually"). `0` always cleans up. |
 | `asrProvider` | `whisperkit` | `whisperkit` (on-device) or `api` (a transcription API). |
 | `whisperModel` | `large-v3-v20240930_626MB` | WhisperKit only. Any name from [argmaxinc/whisperkit-coreml](https://huggingface.co/argmaxinc/whisperkit-coreml), e.g. `small.en` (smaller, faster) or `large-v3-v20240930_turbo` (larger, fastest on Mac). |
@@ -103,18 +103,18 @@ To use a different certificate, set `DEV_IDENTITY="Name"` when running the scrip
   ./build/Whisperwell.app/Contents/MacOS/Whisperwell --transcribe /tmp/test.aiff
   ```
   It prints the active models, the time taken, and the final text, using your real config.
-  Add `--before "Text already in the field."` to simulate text above the cursor (checks that cleanup doesn't repeat it), or `--race-preview` to run a live-preview pass at the same moment as the final transcription (checks they don't interfere).
+  Add `--before "Text already in the field."` to simulate text above the cursor (checks that cleanup doesn't repeat it), `--race-preview` to run a live-preview pass at the same moment as the final transcription (checks they don't interfere), or `--simulate-live` to replay the file as if it were spoken and compare transcribing it in pieces with transcribing it all at once (text and time after release).
 - Indicator design: `Whisperwell --render-indicator /tmp/indicator` writes a PNG of each state.
 - Settings and setup windows: `Whisperwell --render-ui /tmp/ui` writes a PNG of each Settings tab and the setup window.
 - Against a running local model server: `WHISPERWELL_LOCAL_LLM_URL=http://127.0.0.1:1234/v1 WHISPERWELL_LOCAL_LLM_MODEL="" swift test --filter LocalServerIntegrationTests`.
 
 ## Behavior
 
-- Taps shorter than 0.3 s are ignored.
+- Dictation starts once the hotkey has been held for 0.3 s: that's when the sound plays and the indicator appears. The mic starts the moment you press, so the first words aren't clipped. Shorter taps, and Option shortcuts typed within 0.3 s, are dropped silently.
 - Pressing another key while holding the hotkey cancels (so Option+e still types é).
 - It won't paste into password fields.
 - The pasted text is marked so clipboard managers skip it, and your previous clipboard comes back 0.6 s later.
-- While you hold the hotkey, the indicator shows the words heard so far. Whisperwell re-transcribes about once a second on-device; the log records how many passes ran and how long they took.
+- While you hold the hotkey, the indicator shows the words heard so far. Whisperwell transcribes on-device about once a second, and at each pause it keeps the finished part, so letting go only transcribes the last few seconds. The log records the passes, how much was already transcribed at release, and the loudness levels used to find pauses.
 - Cleanup never repeats text that's already in the field; if a model echoes it anyway, Whisperwell strips it before pasting.
 - If Whisperwell can't paste (for example without Accessibility permission), the text is left on your clipboard so it isn't lost.
 - The mic starts before anything else when you press the hotkey; wait for the soft "tink" before you talk. The log records how long the mic took to start.
@@ -151,6 +151,5 @@ Both need an Apple Developer Program membership. Supporting files:
 
 ## Next steps
 
-- Paste faster on long dictations by reusing the live-preview transcription for the final text.
 - Move to Swift 6 language mode (the package uses Swift 5 mode today).
 - Intel Macs: the app compiles for x86_64, but WhisperKit 1.1.1 crashes there while decoding (tested under Rosetta). An Intel build would need on-device speech turned off, leaving only the cloud speech option.

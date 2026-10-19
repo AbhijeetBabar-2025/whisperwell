@@ -1,4 +1,4 @@
-# Publishes Whisperwell/docs (privacy policy and support page) to GitHub Pages:
+# Publishes docs/ (privacy policy and support page) to GitHub Pages:
 # https://abhijeetbabar-2025.github.io/whisperwell/
 name: Docs site
 
@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "Whisperwell/docs/**"
+      - "docs/**"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -27,7 +27,7 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: actions/jekyll-build-pages@v1
         with:
-          source: ./Whisperwell/docs
+          source: ./docs
           destination: ./_site
       - uses: actions/upload-pages-artifact@v3
 

@@ -11,7 +11,7 @@ Need help? [Open an issue on GitHub](https://github.com/AbhijeetBabar-2025/whisp
 1. Open Whisperwell. A microphone icon appears in the menu bar.
 2. On first launch it downloads the speech model (about 600 MB). The menu shows "Speech: … ✓ ready" when it's done.
 3. The setup window lists the permissions Whisperwell needs (**Microphone**, **Input Monitoring**, **Accessibility**), with a button that opens the right page in System Settings for each. Then click **Restart Whisperwell**.
-4. Click into any text field, hold **Right Option (⌥)**, speak, and let go.
+4. Click into any text field in any app, hold **Right Option (⌥)** until you hear the start sound (about a third of a second), speak, and let go.
 
 ## Common questions
 
@@ -20,6 +20,9 @@ Check that Whisperwell is allowed under Input Monitoring, then quit and reopen i
 
 **The text doesn't appear.**
 Whisperwell needs Accessibility permission to paste. It also won't paste into password fields.
+
+**A quick tap of Option doesn't start dictation.**
+That's intended. Dictation starts once you've held the key for about a third of a second, so quick taps and Option shortcuts never pop up the indicator.
 
 **Typing Option + a letter cancels dictation.**
 That's intended, so Option shortcuts and accented characters (such as Option+E) keep working. Hold the hotkey on its own while you speak.

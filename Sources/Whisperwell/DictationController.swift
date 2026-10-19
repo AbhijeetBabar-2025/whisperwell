@@ -19,8 +19,9 @@ final class DictationController {
         didSet { onStateChange?(state) }
     }
 
-    /// Ignore taps shorter than this; they're usually accidental.
-    private static let minimumDuration: TimeInterval = 0.3
+    /// The hotkey must be held this long before dictation shows itself. Shorter taps, and Option
+    /// shortcuts typed within this time, are dropped silently.
+    private static let holdDelay: TimeInterval = 0.3
 
     private let config: Config
     private let onDevice: OnDeviceTranscriber?
@@ -28,7 +29,13 @@ final class DictationController {
     private let recorder = AudioRecorder()
     private var context = TextContext()
     private var startedAt = Date()
+    /// The mic is running but the hotkey hasn't been held for `holdDelay` yet.
+    private var holdPending = false
+    private var holdWork: DispatchWorkItem?
+    private var micCapturing = false
     private var previewTask: Task<Void, Never>?
+    /// Transcribes the recording in pieces while the hotkey is held (on-device speech only).
+    private var incremental: IncrementalTranscript?
     /// What speech-to-text heard last time, before cleanup. Offered in the menu.
     private(set) var lastRawTranscript: String?
 
@@ -46,8 +53,10 @@ final class DictationController {
         case .recording, .processing: return
         case .idle, .failed: break
         }
+        guard !holdPending else { return }
         // Start the mic first so the first words aren't clipped, then read the target field
-        // (an Accessibility call that can take a moment) before focus can move.
+        // (an Accessibility call that can take a moment) before focus can move. Nothing is shown
+        // or played until the hotkey has been held for `holdDelay`.
         do {
             try recorder.start()
         } catch {
@@ -55,22 +64,49 @@ final class DictationController {
             return
         }
         startedAt = Date()
-        state = .recording
-        feedback.recordingRequested()
+        micCapturing = false
+        holdPending = true
         context = ContextReader.current()
-        startLivePreview()
+        let work = DispatchWorkItem { [weak self] in self?.holdConfirmed() }
+        holdWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.holdDelay, execute: work)
     }
 
-    /// While the hotkey is held, re-transcribe the audio so far and show it in the indicator.
-    /// Runs one pass at a time, so a slow Mac just updates less often.
-    private func startLivePreview() {
-        guard config.livePreview, config.showIndicator, let onDevice else { return }
+    /// Held long enough: this is a dictation.
+    private func holdConfirmed() {
+        guard holdPending else { return }
+        holdPending = false
+        holdWork = nil
+        state = .recording
+        feedback.recordingRequested()
+        if micCapturing { feedback.listening() }
+        startLiveTranscription()
+    }
+
+    /// Released (or another key pressed) before `holdDelay`: drop the audio without any sound or indicator.
+    private func dropPendingHold(_ reason: String) {
+        holdWork?.cancel()
+        holdWork = nil
+        holdPending = false
+        _ = recorder.stop()
+        log.info("Ignored: \(reason, privacy: .public) within \(Int(Self.holdDelay * 1000), privacy: .public) ms of the hotkey")
+    }
+
+    /// While the hotkey is held, transcribe finished parts of the recording (cut at pauses), so
+    /// releasing only has to transcribe the last few seconds. With live preview on, the passes in
+    /// between also show the words so far in the indicator. One pass at a time, so a slow Mac
+    /// just updates less often.
+    private func startLiveTranscription() {
+        guard let onDevice else { return }
+        let showPreview = config.livePreview && config.showIndicator
+        let incremental = IncrementalTranscript { samples in try await onDevice.transcribe(samples: samples) }
+        self.incremental = incremental
         previewTask = Task { [weak self] in
             var passes = 0
             var totalMs = 0
             defer {
                 if passes > 0 {
-                    log.info("Live preview: \(passes, privacy: .public) passes, \(totalMs / passes, privacy: .public) ms average")
+                    log.info("Live transcription: \(passes, privacy: .public) passes, \(totalMs / passes, privacy: .public) ms average")
                 }
             }
             while !Task.isCancelled {
@@ -78,38 +114,40 @@ final class DictationController {
                 guard let self, !Task.isCancelled, self.state == .recording else { return }
                 let samples = self.recorder.snapshot()
                 guard samples.count >= AudioFormat.sampleRate else { continue } // wait for 1 s of audio
-                let recent = Array(samples.suffix(LivePreview.maxSeconds * AudioFormat.sampleRate))
                 let passStart = Date()
-                let text = try? await onDevice.transcribe(samples: recent)
+                guard let text = await incremental.update(samples: samples, preview: showPreview) else { continue }
                 passes += 1
                 totalMs += Int(Date().timeIntervalSince(passStart) * 1000)
-                guard let text,
-                      !Task.isCancelled, self.state == .recording, !text.isEmpty else { continue }
+                guard showPreview, !Task.isCancelled, self.state == .recording, !text.isEmpty else { continue }
                 self.feedback.partial(LivePreview.tail(text))
             }
         }
     }
 
-    private func stopLivePreview() {
+    /// Stops starting new passes. A pass already running finishes; `IncrementalTranscript.finish` decides what to keep.
+    private func stopLiveTranscription() {
         previewTask?.cancel()
         previewTask = nil
     }
 
     func cancel() {
+        if holdPending { return dropPendingHold("another key was pressed") }
         guard state == .recording else { return }
-        stopLivePreview()
+        stopLiveTranscription()
         _ = recorder.stop()
+        incremental = nil
         log.info("Dictation cancelled: another key was pressed while the hotkey was held")
         feedback.cancelled()
         state = .idle
     }
 
     func finish() {
+        if holdPending { return dropPendingHold("the hotkey was released") }
         guard state == .recording else { return }
-        stopLivePreview()
+        stopLiveTranscription()
         let samples = recorder.stop()
         let duration = Date().timeIntervalSince(startedAt)
-        guard duration >= Self.minimumDuration, !samples.isEmpty else {
+        guard !samples.isEmpty else {
             feedback.cancelled()
             state = .idle
             return
@@ -117,8 +155,17 @@ final class DictationController {
         state = .processing
         feedback.transcribing()
 
-        let onDeviceTranscribe: DictationPipeline.Transcribe? = onDevice.map { transcriber in
+        var onDeviceTranscribe: DictationPipeline.Transcribe? = onDevice.map { transcriber in
             { @Sendable samples in try await transcriber.transcribe(samples: samples) }
+        }
+        if let incremental {
+            // Most of the recording is already transcribed; this only does what's left.
+            onDeviceTranscribe = { @Sendable samples in
+                let done = await incremental.committedSeconds
+                log.info("\(String(format: "%.1f", done), privacy: .public)s of audio already transcribed at release (\(Pauses.summary(samples), privacy: .public))")
+                return try await incremental.finish(samples: samples)
+            }
+            self.incremental = nil
         }
         let pipeline: DictationPipeline
         do {
@@ -138,7 +185,7 @@ final class DictationController {
                 let result = try await pipeline.runDetailed(samples: samples)
                 lastRawTranscript = result.raw.isEmpty ? lastRawTranscript : result.raw
                 // Lengths only: what you said is never logged.
-                log.info("Speech-to-text heard \(result.raw.count, privacy: .public) characters; pasting \(result.text.count, privacy: .public) after cleanup")
+                log.info("Speech-to-text heard \(result.raw.count, privacy: .public) characters in \(Int(result.transcribeSeconds * 1000), privacy: .public) ms; pasting \(result.text.count, privacy: .public) after \(Int(result.cleanupSeconds * 1000), privacy: .public) ms of cleanup")
                 deliver(result.text, into: context)
             } catch {
                 fail(error)
@@ -147,10 +194,12 @@ final class DictationController {
     }
 
     private func micStarted() {
-        guard state == .recording else { return }
+        guard holdPending || state == .recording else { return }
+        micCapturing = true
         let ms = Int(Date().timeIntervalSince(startedAt) * 1000)
         log.info("Mic capturing \(ms, privacy: .public) ms after the hotkey")
-        feedback.listening()
+        // While the hold is pending, the sound waits for `holdConfirmed`.
+        if state == .recording { feedback.listening() }
     }
 
     private func deliver(_ text: String, into context: TextContext) {
