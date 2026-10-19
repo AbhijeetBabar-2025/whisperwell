@@ -3,3 +3,8 @@
 build/
 .swiftpm/
 Branding/Icon/AppIcon.iconset/
+
+# Website
+website/node_modules/
+website/build/
+website/.docusaurus/

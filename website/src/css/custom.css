@@ -1,0 +1,82 @@
+/* Site-wide theme. Palette from Branding/README.md: indigo, violet, lilac, mint. */
+
+:root {
+  --ww-indigo: #2a2f7a;
+  --ww-violet: #5b3fd1;
+  --ww-lilac: #8e5bf5;
+  --ww-mint: #6bf5cf;
+  --ww-ink: #12142b;
+  --ww-rule: #e4e2f0;
+
+  --ifm-color-primary: #5b3fd1;
+  --ifm-color-primary-dark: #4f33c6;
+  --ifm-color-primary-darker: #4a30bb;
+  --ifm-color-primary-darkest: #3d289a;
+  --ifm-color-primary-light: #6c53d6;
+  --ifm-color-primary-lighter: #755ed9;
+  --ifm-color-primary-lightest: #9180e2;
+
+  --ifm-font-family-base: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+  --ifm-heading-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --ifm-font-color-base: #23253f;
+  --ifm-heading-color: var(--ww-ink);
+  --ifm-background-color: #fcfcfe;
+  --ifm-navbar-height: 4rem;
+  --ifm-code-font-size: 92%;
+  --ifm-global-radius: 10px;
+  --docusaurus-highlighted-code-line-bg: rgb(91 63 209 / 0.1);
+}
+
+html[data-theme='dark'] {
+  --ww-rule: #2c2f52;
+
+  --ifm-color-primary: #a48bf7;
+  --ifm-color-primary-dark: #9373f5;
+  --ifm-color-primary-darker: #8b68f4;
+  --ifm-color-primary-darkest: #6f45f1;
+  --ifm-color-primary-light: #b5a3f9;
+  --ifm-color-primary-lighter: #bdaefa;
+  --ifm-color-primary-lightest: #d6cdfc;
+
+  --ifm-font-color-base: #d9daea;
+  --ifm-heading-color: #f4f4fb;
+  --ifm-background-color: #10122a;
+  --ifm-background-surface-color: #161936;
+  --ifm-navbar-background-color: #10122a;
+  --ifm-color-emphasis-100: #1b1e3d;
+  --ifm-color-emphasis-200: #262a50;
+  --ifm-code-background: #1b1e3d;
+  --prism-background-color: #1b1e3d;
+  --docusaurus-highlighted-code-line-bg: rgb(164 139 247 / 0.15);
+}
+
+.navbar {
+  box-shadow: none;
+  border-bottom: 1px solid var(--ww-rule);
+}
+
+.navbar__title {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.navbar__logo img {
+  border-radius: 7px;
+}
+
+.footer {
+  background: var(--ww-ink);
+}
+
+.footer--dark {
+  --ifm-footer-background-color: var(--ww-ink);
+}
+
+/* Standalone pages (support, privacy) read like documents: a comfortable measure. */
+.markdown h1:first-child {
+  letter-spacing: -0.02em;
+}
+
+main > .container.margin-vert--lg {
+  max-width: 760px;
+}

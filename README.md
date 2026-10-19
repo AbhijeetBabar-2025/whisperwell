@@ -143,7 +143,7 @@ Both need an Apple Developer Program membership. Supporting files:
 | Path | What |
 |---|---|
 | `AppStore/metadata.md` | Listing text, keywords, review notes, privacy answers. Check limits with `scripts/check-metadata.py`. |
-| `docs/privacy.md`, `docs/support.md` | Privacy policy and support page. Host them (for example on GitHub Pages) and put the URLs in App Store Connect. |
+| `website/` | The [website](https://abhijeetbabar-2025.github.io/whisperwell/), built with Docusaurus: landing page, docs, and the privacy policy and support pages linked from App Store Connect (`website/src/pages/privacy.md`, `support.md`). Preview with `cd website && npm install && npm start`; pushing to `main` publishes it. |
 | `Branding/` | App icon and screenshots, generated from code. See `Branding/README.md`. |
 | `Support/PrivacyInfo.xcprivacy` | Apple privacy manifest, bundled into the app. |
 | `Support/AppStore.entitlements`, `Support/DeveloperID.entitlements` | Entitlements for each route. |

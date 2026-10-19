@@ -1,5 +1,6 @@
 ---
-title: Whisperwell Support
+title: Support
+description: Help with installing and using Whisperwell, the push-to-talk dictation app for macOS.
 ---
 
 # Whisperwell Support
@@ -19,7 +20,10 @@ Need help? [Open an issue on GitHub](https://github.com/AbhijeetBabar-2025/whisp
 Check that Whisperwell is allowed under Input Monitoring, then quit and reopen it. Your hotkey is shown in the Whisperwell menu.
 
 **The text doesn't appear.**
-Whisperwell needs Accessibility permission to paste. It also won't paste into password fields.
+Whisperwell needs Accessibility permission to paste, and it won't paste into password fields. Click into a text field before you let go of the key: if nothing that takes text is selected, Whisperwell leaves your text on the clipboard and tells you, so you can press ⌘V yourself.
+
+**A website won't let me paste.**
+Some forms block pasting. Whisperwell notices and types the text in instead. If that doesn't work either, the text is on your clipboard.
 
 **A quick tap of Option doesn't start dictation.**
 That's intended. Dictation starts once you've held the key for about a third of a second, so quick taps and Option shortcuts never pop up the indicator.
@@ -45,4 +49,4 @@ For the App Store version, settings and the model live in `~/Library/Containers/
 
 ## Privacy
 
-See the [privacy policy](privacy.md).
+See the [privacy policy](/privacy).

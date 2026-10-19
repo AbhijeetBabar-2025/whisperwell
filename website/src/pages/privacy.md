@@ -1,5 +1,6 @@
 ---
-title: Whisperwell Privacy Policy
+title: Privacy Policy
+description: What Whisperwell does with your voice and text. The developer collects no data.
 ---
 
 # Whisperwell Privacy Policy
@@ -28,7 +29,7 @@ Whisperwell is a dictation app for macOS. This policy explains what happens to y
 - *A model on your own computer or local network* (for example LM Studio or Ollama): the data stays on your devices.
 - *A cloud model* (for example Anthropic's Claude): the data goes to that provider using your API key.
 
-**Your clipboard.** Whisperwell inserts text by pasting it. It saves your clipboard first and restores it about half a second later. Pasted text is marked so clipboard managers skip it.
+**Your clipboard.** Whisperwell inserts text by pasting it. It saves your clipboard first and restores it about half a second later. Pasted text is marked so clipboard managers skip it. If a field blocks pasting, Whisperwell types the text in instead. If it can't insert the text at all, it leaves it on your clipboard so it isn't lost.
 
 **Your settings.** API keys are stored in your Mac's Keychain. Other settings and your personal dictionary are stored in a file on your Mac that only your user account can read. None of them are sent to the developer.
 
